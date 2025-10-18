@@ -370,7 +370,105 @@ int fib_down(int N) {
 + **Поперечный обход** - *слева направо*; сначала левое поддерево, затем узел, затем правое поддерево;
 + **Обратный обход** - *снизу вверх*; сначала левое и правое поддеревья, а затем узел.
 
-Вместо рекурсивного вызова функции обхода все узлы, которые предстоит посетить, можно поместить в набор. Порядок расположения узлов в наборе определит порядок обхода узлов при их извлечении из него:
+Вместо рекурсивного вызова функции обхода, все узлы дерева можно поместить в **стек**. Порядок размещения узлов в стеке определяет способ обхода дерева.
 
-+ если используется **LIFO** (*стек*), то обход будет продвигаться **в глубину** каждого поддерева;
-+ если используется **FIFO** (*очередь*), то обход будет идти **в ширину** дерева (последовательно по его уровням);
+Рассмотрим следующие бинарное дерево:
+
+ <img src="images/6.png" alt="6" width="200"/>
+
+```C++
+struct Node {
+    using Ptr = std::shared_ptr<Node>;
+    Ptr l = nullptr;
+    Ptr r = nullptr;
+    int val = 0;
+};
+```
+
+Прямой, поперечный и обратный обход с использованием стека:
+
+```C++
+// прямой (в глубину).
+void traverse_forward_stack(Node::Ptr n) {
+    if(not n)
+        return;
+    std::stack<Node::Ptr> stack;
+    stack.push(n);
+    while(not stack.empty()) {
+        n = stack.top(); stack.pop();
+        std::cout << n->val << " ";
+        if(n->r) stack.push(n->r);
+        if(n->l) stack.push(n->l);
+    }
+    std::cout << std::endl;
+}
+// Ответ: 1 [2 4 5] [3 6 7]
+
+// поперечный.
+void traverse_cross_stack(Node::Ptr n) {
+    if(not n)
+        return;
+    std::stack<Node::Ptr> stack;
+    stack.push(n);
+    while(not stack.empty()) {
+        n = stack.top(); stack.pop();
+        auto l = n->l;
+        auto r = n->r;
+        n->l = nullptr;
+        n->r = nullptr;
+        if(not l and not r) {
+            std::cout << n->val << " ";
+            continue;
+        }
+        if(r) stack.push(r);
+        stack.push(n);
+        if(l) stack.push(l);
+    }
+    std::cout << std::endl;
+}
+// Ответ: [4 2 5] 1 [6 3 7]
+
+// обратный.
+void traverse_bacward_stack(Node::Ptr n) {
+    if(not n)
+        return;
+    std::stack<Node::Ptr> stack;
+    stack.push(n);
+    while(not stack.empty()) {
+        n = stack.top(); stack.pop();
+        auto l = n->l;
+        auto r = n->r;
+        n->l = nullptr;
+        n->r = nullptr;
+        if(not l and not r) {
+            std::cout << n->val << " ";
+            continue;
+        }
+        stack.push(n);
+        if(r) stack.push(r);
+        if(l) stack.push(l);
+    }
+    std::cout << std::endl;
+}
+// Ответ: [4 5 2] [6 7 3] 1
+```
+
+*Прямой* обход с использованием *стека* (или *рекурсии*) называется обходом дерева **в глубину**. Если заменить *стек* на **очередь**, то мы получим обход **в ширину** - по уровням дерева:
+
+```C++
+// прямой (в ширину).
+void breadth_first_traverse(Node::Ptr n) {
+    if(not n)
+        return;
+    std::queue<Node::Ptr> queue;
+    queue.push(n);
+    while(not queue.empty()) {
+        n = queue.front(); queue.pop();
+        std::cout << n->val << " ";
+        if(n->l) queue.push(n->l);
+        if(n->r) queue.push(n->r);
+    }
+    std::cout << std::endl;
+}
+// Ответ: 1 | 2 3 | 4 5 6 7
+```
