@@ -65,24 +65,23 @@ void union_find(int p, int q) {
 Вместо того чтобы каждый раз соединять первое дерево со вторым, введем дополнительный массив с размерами получаемых поднаборов и будем всегда добавлять меньшее дерево к корню большего. Это предотвратит разрастание длинных путей и избавит от случаев, когда корень уже существующего пути последовательно переносится всё дальше от крайнего элемента.
 
 ```C++
-int parent[N] = {0, 1, 2, ... N-1};
+int parents[N] = {0, 1, 2, ... N-1};
 int size[N] = {1, 1, 1, ... 1};
 
 void union_find(int p, int q) {
-    int i = p, j = q;
-    while(i != parent[i])
-        i = parent[i];
-    while(j != parent[j])
-        j = parent[j];
-    if(i == j)
+    while(p != parents[p])
+        p = parents[p];
+    while(q != parents[q])
+        q = parents[q];
+    if(p == q)
         return;
-    if(size[i] < size[j]) {
-        parent[i] = j;
-        size[j] += size[i];
+    if(size[p] < size[q]) {
+        parents[p] = q;
+        size[q] += size[p];
     }
     else {
-        parent[j] = i;
-        size[i] += size[j];
+        parents[q] = p;
+        size[p] += size[q];
     }
 }
 ```
@@ -96,32 +95,31 @@ void union_find(int p, int q) {
 В идеале хотелось бы, чтобы каждый объект непосредственно указывал на вершину - длина пути в этом случае равнялась бы 1, и можно было бы мгновенно определить набор, содержащий данный объект (как в случае быстрого поиска). Это можно достичь дополнительным выполнением *сжатия пути*. Одной из стратегий сжатия является *деление пополам*: при обходе пути в процессе операции *find* для каждого посещаемого элемента указатель его предка дополнительно переносится с родителя на деда. Очевидно, что финальный элемент поднабора является также является своим дедом, как и своим родителем.
 
 ```C++
-int parent[N] = {0, 1, 2, ... N-1};
+int parents[N] = {0, 1, 2, ... N-1};
 int size[N] = {1, 1, 1, ... 1};
 
 void union_find(int p, int q) {
-    int i = p, j = q;
-    while(i != parent[i]) {
+    while(p != parents[p]) {
         // устанавливаем предком узла его деда.
-        parent[i] = parent[parent[i]];
-        i = parent[i];
+        parents[p] = parents[parents[p]];
+        p = parents[p];
     }
-    while(j != parent[j]) {
+    while(q != parents[q]) {
         // устанавливаем предком узла его деда.
-        parent[j] = parent[parent[j]];
-        j = parent[j];
+        parents[q] = parents[parents[q]];
+        q = parents[q];
     }
     // перестановка узлов наборов не изменила их вес.
-    if(i == j)
+    if(p == q)
         return;
     // если наборы разные, то объединим их.
-    if(size[i] < size[j]) {
-        parent[i] = j;
-        size[j] += size[i];
+    if(size[p] < size[q]) {
+        parents[p] = q;
+        size[q] += size[p];
     }
     else {
-        parent[j] = i;
-        size[i] += size[j];
+        parents[q] = p;
+        size[p] += size[q];
     }
 }
 ```
